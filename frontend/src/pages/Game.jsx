@@ -48,8 +48,8 @@ export function Game() {
       
       {/* Title Section */}
       <div className="text-center p-8">
-        <h1 className="text-4xl font-bold text-blue-800 animate-bounce">🎮 Math Game Challenge! 🎈</h1>
-        <p className="text-lg text-blue-600 mt-2 font-semibold">Choose your game and start playing! 🚀</p>
+        <h1 className="text-4xl font-bold text-blue-800 animate-bounce">🎮 Math Game Challenge!! 🎈</h1>
+        <p className="text-lg text-blue-600 mt-2 font-semibold">Choose your game and start playing!!! 🚀</p>
       </div>
 
       {/* Game Selection */}
