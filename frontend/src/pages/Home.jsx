@@ -102,7 +102,7 @@ export function Home() {
       <div className="mt-12 bg-gradient-to-b from-yellow-100 to-white p-12 text-center rounded-2xl shadow-md">
         <h2 className="text-2xl font-bold text-yellow-600">💛 We Care About How You Feel! 💛</h2>
         <p className="text-lg text-gray-800 italic mt-2">
-          If you're sad, we'll play something happy to help you smile! 😊
+          If you're sad, we'll play something happy to help you smile!!! 😊
         </p>
         <img
           src="happy-child.jpg"
