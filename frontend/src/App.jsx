@@ -4,12 +4,13 @@ import { SignUp } from "./pages/SignUp";
 import { SignIn } from "./pages/SignIn";
 import { Game } from "./pages/Game";
 import { Profile } from "./pages/Profile";
-import { Progress } from "./pages/Progress"; // ✅ Make sure this is imported
-import { PlayVideo } from "./pages/PlayVideo"; // ✅ Import PlayVideo
+import { Progress } from "./pages/Progress";
+import { PlayVideo } from "./pages/PlayVideo";
 import { ContactUs } from "./pages/ContactUs";
 import { Header } from "./components/Header";
 import { Footer } from "./components/Footer";
-import Logout from "./components/Logout";
+import ProtectedRoute from "./utils/ProtectedRoute";
+import { Logout } from "./components/Logout";  // Import Logout component
 
 export default function App() {
   return (
@@ -21,12 +22,36 @@ export default function App() {
             <Route path="/" element={<Home />} />
             <Route path="/signup" element={<SignUp />} />
             <Route path="/signin" element={<SignIn />} />
-            <Route path="/game" element={<Game />} />
-            <Route path="/profile" element={<Profile />} />
-            <Route path="/progress" element={<Progress />} /> {/* ✅ Fixed Progress Route */}
-            <Route path="/play-video" element={<PlayVideo />} /> {/* ✅ Fixed Play Video Route */}
-            <Route path="/contact" element={<ContactUs />} />
-            <Route path="/logout" element={<Logout />} />
+            
+            {/* Protected Routes */}
+            <Route path="/game" element={
+              <ProtectedRoute>
+                <Game />
+              </ProtectedRoute>
+            } />
+            <Route path="/profile" element={
+              <ProtectedRoute>
+                <Profile />
+              </ProtectedRoute>
+            } />
+            <Route path="/progress" element={
+              <ProtectedRoute>
+                <Progress />
+              </ProtectedRoute>
+            } />
+            <Route path="/contact" element={
+              <ProtectedRoute>
+                <ContactUs />
+              </ProtectedRoute>
+            } />
+            <Route path="/play-video" element={
+              <ProtectedRoute>
+                <PlayVideo />
+              </ProtectedRoute>
+            } />
+            
+            {/* Logout Route (no path needed for logout, handled by component) */}
+            <Route path="/logout" element={<Logout />} /> 
           </Routes>
         </div>
         <Footer />

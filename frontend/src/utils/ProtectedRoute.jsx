@@ -1,17 +1,14 @@
-import React from "react";
+// src/components/ProtectedRoute.jsx
+
+import React, { useContext } from "react";
 import { Navigate } from "react-router-dom";
-import { notification } from 'antd';
+import { AuthContext } from "../utils/AuthContext";
 
 const ProtectedRoute = ({ children }) => {
-  const isLoggedIn = localStorage.getItem("loggedIn") === "true"; 
+  const { user } = useContext(AuthContext);
 
-  if (!isLoggedIn) {
-    notification.warning({
-      message: 'Action Not Allowed',
-      description: 'You must be logged in to access this page.',
-    });
-
-    return <Navigate to="/login" replace />; 
+  if (!user) {
+    return <Navigate to="/signin" replace />;
   }
 
   return children;
