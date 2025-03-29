@@ -1,4 +1,6 @@
 import { useState, useEffect } from 'react';
+import { toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 const colors = ['bg-red-500', 'bg-blue-500', 'bg-green-500', 'bg-yellow-500'];
 
@@ -25,21 +27,26 @@ export function PatternGame({ onBack, updateScore }) {
 
   useEffect(() => {
     if (timeLeft === 0 && !gameOver) {
+      toast.warning("⏳ Time's up!");
       handleWrongAnswer();
     }
   }, [timeLeft, gameOver]);
 
   const generatePattern = () => {
-    const patternLength = 4; // Fixed pattern length for simplicity
+    const patternLength = 4;
     const firstColor = colors[Math.floor(Math.random() * colors.length)];
-    const secondColor = colors[Math.floor(Math.random() * colors.length)];
-    
-    // Create a simple alternating pattern
+    let secondColor = colors[Math.floor(Math.random() * colors.length)];
+
+    // Ensure two different colors
+    while (secondColor === firstColor) {
+      secondColor = colors[Math.floor(Math.random() * colors.length)];
+    }
+
     const newPattern = [];
     for (let i = 0; i < patternLength; i++) {
       newPattern.push(i % 2 === 0 ? firstColor : secondColor);
     }
-    
+
     return newPattern;
   };
 
@@ -47,53 +54,64 @@ export function PatternGame({ onBack, updateScore }) {
     const fullPattern = generatePattern();
     const visiblePattern = fullPattern.slice(0, -1);
     const answer = fullPattern[fullPattern.length - 1];
-    
+
     setPattern(visiblePattern);
     setCorrectAnswer(answer);
-    
-    // Generate options - ensure answer is included and options are unique
-    const options = [answer];
-    while (options.length < 4) {
-      const randomColor = colors[Math.floor(Math.random() * colors.length)];
-      if (!options.includes(randomColor)) {
-        options.push(randomColor);
-      }
+
+    const optionSet = new Set([answer]);
+    while (optionSet.size < 4) {
+      const random = colors[Math.floor(Math.random() * colors.length)];
+      optionSet.add(random);
     }
-    setOptions(options.sort(() => Math.random() - 0.5));
+    setOptions(Array.from(optionSet).sort(() => Math.random() - 0.5));
   };
 
   const handleWrongAnswer = () => {
+    toast.error("❌ Wrong!");
     const newLives = lives - 1;
     setLives(newLives);
     if (newLives === 0) {
-      setGameOver(true);
-      return;
-    }
-    
-    if (currentQuestion < totalQuestions - 1) {
-      setCurrentQuestion(currentQuestion + 1);
-      setTimeLeft(30);
-      generateQuestion();
+      handleGameOver();
+    } else {
+      nextQuestion();
     }
   };
 
   const handleAnswer = (selectedAnswer) => {
     if (gameOver) return;
-    
+
     if (selectedAnswer === correctAnswer) {
-      setScore(score + 1);
-      updateScore(score + 1);
-      
-      if (currentQuestion < totalQuestions - 1) {
-        setCurrentQuestion(currentQuestion + 1);
-        setTimeLeft(30);
-        generateQuestion();
-      } else {
-        setGameOver(true);
-      }
+      toast.success("✅ Correct!");
+      const newScore = score + 1;
+      setScore(newScore);
+      updateScore(newScore);
+      nextQuestion();
     } else {
       handleWrongAnswer();
     }
+  };
+
+  const nextQuestion = () => {
+    if (currentQuestion < totalQuestions - 1) {
+      setCurrentQuestion(prev => prev + 1);
+      setTimeLeft(30);
+    } else {
+      handleGameOver();
+    }
+  };
+
+  const handleGameOver = () => {
+    toast.info("🎮 Game Over!");
+    setGameOver(true);
+  };
+
+  const resetGame = () => {
+    setScore(0);
+    setLives(5);
+    setCurrentQuestion(0);
+    setTimeLeft(30);
+    setGameOver(false);
+    generateQuestion();
   };
 
   return (
@@ -106,23 +124,16 @@ export function PatternGame({ onBack, updateScore }) {
       </button>
 
       <h2 className="text-3xl font-bold text-yellow-700">🔷 Pattern Completion Game</h2>
-      
+
       {gameOver ? (
         <div className="my-6">
           <h3 className="text-2xl font-bold text-red-500">Game Over!</h3>
           <p className="text-xl">Your final score: {score}/{totalQuestions}</p>
           <button
-            onClick={() => {
-              setScore(0);
-              setLives(5);
-              setCurrentQuestion(0);
-              setGameOver(false);
-              setTimeLeft(30);
-              generateQuestion();
-            }}
+            onClick={resetGame}
             className="mt-4 px-6 py-2 bg-yellow-500 text-white rounded-lg shadow hover:bg-yellow-600 transition"
           >
-            Play Again
+            🔄 Play Again
           </button>
         </div>
       ) : (

@@ -10,7 +10,10 @@ import { ContactUs } from "./pages/ContactUs";
 import { Header } from "./components/Header";
 import { Footer } from "./components/Footer";
 import ProtectedRoute from "./utils/ProtectedRoute";
-import { Logout } from "./components/Logout";  // Import Logout component
+import { Logout } from "./components/Logout"; 
+
+import { ToastContainer } from "react-toastify";
+import 'react-toastify/dist/ReactToastify.css';
 
 export default function App() {
   return (
@@ -50,12 +53,13 @@ export default function App() {
               </ProtectedRoute>
             } />
             
-            {/* Logout Route (no path needed for logout, handled by component) */}
             <Route path="/logout" element={<Logout />} /> 
           </Routes>
         </div>
         <Footer />
       </div>
+
+      <ToastContainer position="top-center" autoClose={2000} />
     </Router>
   );
 }

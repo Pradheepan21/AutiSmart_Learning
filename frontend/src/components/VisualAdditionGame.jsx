@@ -1,4 +1,6 @@
 import { useState, useEffect } from 'react';
+import { toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 const colors = ['bg-red-500', 'bg-blue-500', 'bg-green-500', 'bg-yellow-500'];
 
@@ -25,6 +27,7 @@ export function VisualAdditionGame({ onBack, updateScore }) {
 
   useEffect(() => {
     if (timeLeft === 0 && !gameOver) {
+      toast.warning("⏳ Time's up!");
       handleWrongAnswer();
     }
   }, [timeLeft, gameOver]);
@@ -33,58 +36,70 @@ export function VisualAdditionGame({ onBack, updateScore }) {
     const count1 = Math.floor(Math.random() * 5) + 1;
     const count2 = Math.floor(Math.random() * 5) + 1;
     const selectedColor = colors[Math.floor(Math.random() * colors.length)];
-    
-    const newItems = [
-      ...Array(count1 + count2).fill(selectedColor)
-    ];
-    
+
+    const newItems = Array(count1 + count2).fill(selectedColor);
     setItems(newItems);
+
     const answer = count1 + count2;
     setCorrectAnswer(answer);
-    
-    // Generate options
-    const options = [answer];
-    while (options.length < 4) {
-      const randomOption = Math.floor(Math.random() * 10) + 1;
-      if (!options.includes(randomOption) && randomOption !== answer) {
-        options.push(randomOption);
-      }
+
+    const optionSet = new Set([answer]);
+    while (optionSet.size < 4) {
+      optionSet.add(Math.floor(Math.random() * 10) + 1);
     }
-    setOptions(options.sort(() => Math.random() - 0.5));
+    setOptions(Array.from(optionSet).sort(() => Math.random() - 0.5));
   };
 
   const handleWrongAnswer = () => {
+    toast.error("❌ Wrong!");
     const newLives = lives - 1;
     setLives(newLives);
+
     if (newLives === 0) {
-      setGameOver(true);
+      handleGameOver();
       return;
     }
-    
+
     if (currentQuestion < totalQuestions - 1) {
       setCurrentQuestion(currentQuestion + 1);
       setTimeLeft(30);
-      generateQuestion();
+    } else {
+      handleGameOver();
     }
   };
 
   const handleAnswer = (selectedAnswer) => {
     if (gameOver) return;
-    
+
     if (selectedAnswer === correctAnswer) {
-      setScore(score + 1);
-      updateScore(score + 1);
-      
+      toast.success("✅ Correct!");
+      const newScore = score + 1;
+      setScore(newScore);
+      updateScore(newScore);
+
       if (currentQuestion < totalQuestions - 1) {
         setCurrentQuestion(currentQuestion + 1);
         setTimeLeft(30);
-        generateQuestion();
       } else {
-        setGameOver(true);
+        handleGameOver();
       }
     } else {
       handleWrongAnswer();
     }
+  };
+
+  const handleGameOver = () => {
+    setGameOver(true);
+    toast.info("🎮 Game Over!");
+  };
+
+  const handlePlayAgain = () => {
+    setScore(0);
+    setLives(5);
+    setCurrentQuestion(0);
+    setGameOver(false);
+    setTimeLeft(30);
+    generateQuestion();
   };
 
   return (
@@ -97,23 +112,16 @@ export function VisualAdditionGame({ onBack, updateScore }) {
       </button>
 
       <h2 className="text-3xl font-bold text-green-700">➕ Visual Addition Game</h2>
-      
+
       {gameOver ? (
         <div className="my-6">
           <h3 className="text-2xl font-bold text-red-500">Game Over!</h3>
           <p className="text-xl">Your final score: {score}/{totalQuestions}</p>
           <button
-            onClick={() => {
-              setScore(0);
-              setLives(5);
-              setCurrentQuestion(0);
-              setGameOver(false);
-              setTimeLeft(30);
-              generateQuestion();
-            }}
+            onClick={handlePlayAgain}
             className="mt-4 px-6 py-2 bg-green-500 text-white rounded-lg shadow hover:bg-green-600 transition"
           >
-            Play Again
+            🔄 Play Again
           </button>
         </div>
       ) : (
@@ -123,7 +131,7 @@ export function VisualAdditionGame({ onBack, updateScore }) {
             {items.map((color, index) => (
               <div 
                 key={index} 
-                className={`w-8 h-8 rounded-full ${items[0]} border border-gray-400`}
+                className={`w-8 h-8 rounded-full ${color} border border-gray-400`}
               ></div>
             ))}
           </div>

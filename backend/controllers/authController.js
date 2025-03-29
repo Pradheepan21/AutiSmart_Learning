@@ -1,7 +1,6 @@
 const asyncHandler = require('express-async-handler');
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
-const bcrypt = require('bcryptjs');
 
 // ✅ Generate JWT Token
 const generateToken = (res, userId) => {
@@ -10,10 +9,10 @@ const generateToken = (res, userId) => {
   });
 
   res.cookie('token', token, {
-    httpOnly: true, 
-    secure: process.env.NODE_ENV === 'production', 
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
     sameSite: 'strict',
-    maxAge: 30 * 24 * 60 * 60 * 1000, 
+    maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
   });
 
   return token;
@@ -25,8 +24,15 @@ exports.loginUser = asyncHandler(async (req, res) => {
   console.log("🟡 Login request received for:", email);
 
   const user = await User.findOne({ email }).select("+password");
-  if (!user || !(await user.matchPassword(password))) {
-    console.log("🔴 Invalid credentials");
+
+  if (!user) {
+    console.log("🔴 Email not found");
+    return res.status(401).json({ success: false, message: "Invalid email or password" });
+  }
+
+  const isMatch = await user.matchPassword(password);
+  if (!isMatch) {
+    console.log("🔴 Password mismatch");
     return res.status(401).json({ success: false, message: "Invalid email or password" });
   }
 
@@ -58,9 +64,8 @@ exports.registerUser = asyncHandler(async (req, res) => {
     });
   }
 
-  const hashedPassword = await bcrypt.hash(password, 10);
-
-  const user = await User.create({ name, email, password: hashedPassword });
+  // ❌ REMOVE manual hashing here
+  const user = await User.create({ name, email, password });
 
   const token = generateToken(res, user._id);
 
@@ -78,7 +83,11 @@ exports.registerUser = asyncHandler(async (req, res) => {
 
 // ✅ User Logout
 exports.logoutUser = asyncHandler(async (req, res) => {
-  res.clearCookie('token', { httpOnly: true, secure: process.env.NODE_ENV === 'production' });
+  res.clearCookie('token', {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'strict',
+  });
 
   res.status(200).json({
     success: true,
@@ -86,7 +95,7 @@ exports.logoutUser = asyncHandler(async (req, res) => {
   });
 });
 
-// ✅ Verify Token (Fixing the missing function)
+// ✅ Token Verifier
 exports.verifyToken = asyncHandler(async (req, res) => {
   res.status(200).json({
     success: true,

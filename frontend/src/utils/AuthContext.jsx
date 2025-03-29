@@ -4,27 +4,31 @@ import { loginUser, registerUser, logoutUser } from "../api/authapi";
 export const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState(() => {
-    const storedUser = localStorage.getItem("user");
-    return storedUser ? JSON.parse(storedUser) : null;
-  });
-
-  const [token, setToken] = useState(() => {
-    return localStorage.getItem("token") || null;
-  });
-
+  const [currentUser, setCurrentUser] = useState(null);
+  const [token, setToken] = useState(null);
   const [loading, setLoading] = useState(false);
+
+  // ✅ Sync user/token from localStorage on first load
+  useEffect(() => {
+    const storedUser = localStorage.getItem("user");
+    const storedToken = localStorage.getItem("token");
+
+    if (storedUser && storedToken) {
+      setCurrentUser(JSON.parse(storedUser));
+      setToken(storedToken);
+    }
+  }, []);
 
   const handleLogin = async (credentials) => {
     setLoading(true);
     try {
       const res = await loginUser(credentials);
       if (res && res.success && res.user && res.token) {
-        setUser(res.user);
+        setCurrentUser(res.user);
         setToken(res.token);
 
         localStorage.setItem("user", JSON.stringify(res.user));
-        localStorage.setItem("token", res.token); // Fix: Previously overwriting user data
+        localStorage.setItem("token", res.token);
 
         return { success: true };
       } else {
@@ -42,7 +46,7 @@ export const AuthProvider = ({ children }) => {
     try {
       const res = await registerUser(userData);
       if (res && res.success && res.user && res.token) {
-        setUser(res.user);
+        setCurrentUser(res.user);
         setToken(res.token);
 
         localStorage.setItem("user", JSON.stringify(res.user));
@@ -65,7 +69,7 @@ export const AuthProvider = ({ children }) => {
     } catch (err) {
       console.error("Logout error:", err);
     } finally {
-      setUser(null);
+      setCurrentUser(null);
       setToken(null);
       localStorage.removeItem("user");
       localStorage.removeItem("token");
@@ -75,7 +79,7 @@ export const AuthProvider = ({ children }) => {
   return (
     <AuthContext.Provider
       value={{
-        user,
+        currentUser,
         token,
         loading,
         handleLogin,
