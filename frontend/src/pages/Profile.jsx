@@ -1,12 +1,32 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 export function Profile() {
   const [isEditing, setIsEditing] = useState(false);
   const [user, setUser] = useState({ name: '', age: '', contact: '', email: '' });
-  const [profilePic, setProfilePic] = useState(null); // Default: No Image
+  const [profilePic, setProfilePic] = useState(null);
   const [showOptions, setShowOptions] = useState(false);
   const navigate = useNavigate();
+
+  // Fetch profile data on page load
+  useEffect(() => {
+    fetch('http://localhost:5000/api/profile/get-profile')
+      .then(res => res.json())
+      .then(data => {
+        setUser({
+          name: data.name || '',
+          age: data.age || '',
+          contact: data.contact || '',
+          email: data.email || '',
+        });
+        if (data.profilePicUrl) {
+          setProfilePic(data.profilePicUrl);
+        }
+      })
+      .catch(err => {
+        console.error("Failed to fetch profile:", err);
+      });
+  }, []);
 
   const handleChange = (e) => {
     setUser({ ...user, [e.target.name]: e.target.value });
@@ -21,27 +41,48 @@ export function Profile() {
   };
 
   const handleDeleteProfilePic = () => {
-    setProfilePic(null); // Remove Profile Pic
+    setProfilePic(null);
+  };
+
+  const handleSave = () => {
+    const dataToSave = {
+      ...user,
+      profilePicUrl: profilePic,
+    };
+
+    fetch('http://localhost:5000/api/profile/save-profile', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(dataToSave),
+    })
+      .then(res => res.json())
+      .then(data => {
+        alert("✅ Profile saved successfully!");
+        setIsEditing(false);
+      })
+      .catch(err => {
+        console.error("Failed to save profile:", err);
+        alert("❌ Failed to save profile.");
+      });
   };
 
   return (
     <div 
       className="min-h-screen flex items-center justify-center p-8 bg-cover bg-center relative"
-      style={{ backgroundImage: "url('/profile-bg.jpg')" }} // ✅ Background applied
+      style={{ backgroundImage: "url('/profile-bg.jpg')" }}
     >
-      {/* Overlay for Readability */}
       <div className="absolute inset-0 bg-white/50"></div>
 
-      {/* Profile Card */}
       <div className="relative z-10 bg-gradient-to-b from-blue-200 to-blue-300 p-10 rounded-3xl shadow-2xl border-8 border-white w-full max-w-lg text-center">
         
-        {/* Profile Picture Section */}
+        {/* Profile Picture */}
         <div 
           className="relative w-40 h-40 mx-auto rounded-full border-4 border-white cursor-pointer overflow-hidden shadow-xl transform hover:scale-105 transition"
           onMouseEnter={() => setShowOptions(true)}
           onMouseLeave={() => setShowOptions(false)}
         >
-          {/* Display Uploaded Image or Default "Profile" Text */}
           {profilePic ? (
             <img src={profilePic} alt="Profile" className="w-full h-full rounded-full object-cover" />
           ) : (
@@ -50,7 +91,6 @@ export function Profile() {
             </div>
           )}
 
-          {/* Hover Options for Edit & Delete */}
           {showOptions && (
             <div className="absolute inset-0 bg-black/60 rounded-full flex flex-col items-center justify-center space-y-3">
               <label className="bg-white px-5 py-3 text-md rounded-lg cursor-pointer font-bold shadow-lg">
@@ -88,11 +128,11 @@ export function Profile() {
           )}
         </div>
 
-        {/* Buttons Section */}
+        {/* Buttons */}
         <div className="flex justify-center space-x-6 mt-8">
           {isEditing ? (
             <button 
-              onClick={() => setIsEditing(false)} 
+              onClick={handleSave} 
               className="px-8 py-3 bg-green-500 text-white text-xl font-bold rounded-xl shadow-md hover:bg-green-600 transition-transform transform hover:scale-110"
             >
               ✅ Save
@@ -113,7 +153,6 @@ export function Profile() {
           </button>
         </div>
       </div>
-      
     </div>
   );
 }
