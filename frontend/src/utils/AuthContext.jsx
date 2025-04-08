@@ -6,7 +6,7 @@ export const AuthContext = createContext();
 export const AuthProvider = ({ children }) => {
   const [currentUser, setCurrentUser] = useState(null);
   const [token, setToken] = useState(null);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true); // ✅ Start as true
 
   // ✅ Sync user/token from localStorage on first load
   useEffect(() => {
@@ -17,6 +17,8 @@ export const AuthProvider = ({ children }) => {
       setCurrentUser(JSON.parse(storedUser));
       setToken(storedToken);
     }
+
+    setLoading(false); // ✅ Done loading
   }, []);
 
   const handleLogin = async (credentials) => {

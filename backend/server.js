@@ -10,6 +10,8 @@ const gameRoutes = require("./routes/gameRoutes");
 const userRoutes = require("./routes/userRouter");
 const profileRoutes = require("./routes/profileRoutes");
 const contactRoutes = require("./routes/contactRoutes"); // ✅ New
+const progressRoutes = require("./routes/progressRoutes"); // ✅ new line
+
 
 dotenv.config();
 
@@ -41,6 +43,8 @@ app.use("/api/games", gameRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/profile", profileRoutes);
 app.use("/api/contact", contactRoutes); // ✅ Added
+app.use("/api/progress", progressRoutes); // ✅ Add this with others
+
 
 // Health check
 app.get("/api/health", (req, res) => {

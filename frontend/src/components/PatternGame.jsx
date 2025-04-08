@@ -37,7 +37,6 @@ export function PatternGame({ onBack, updateScore }) {
     const firstColor = colors[Math.floor(Math.random() * colors.length)];
     let secondColor = colors[Math.floor(Math.random() * colors.length)];
 
-    // Ensure two different colors
     while (secondColor === firstColor) {
       secondColor = colors[Math.floor(Math.random() * colors.length)];
     }
@@ -100,9 +99,37 @@ export function PatternGame({ onBack, updateScore }) {
     }
   };
 
-  const handleGameOver = () => {
+  const handleGameOver = async () => {
     toast.info("🎮 Game Over!");
     setGameOver(true);
+
+    const user = JSON.parse(localStorage.getItem("user"));
+    const token = localStorage.getItem("token");
+
+    if (!user || !token) {
+      toast.error("User not authenticated. Score not saved.");
+      return;
+    }
+
+    try {
+      const response = await fetch("http://localhost:5000/api/games/pattern", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify({ userId: user.id, score }),
+      });
+
+      const data = await response.json();
+      if (response.ok) {
+        toast.success("🎉 Score saved successfully!");
+      } else {
+        toast.error(data.message || "Failed to save score.");
+      }
+    } catch (err) {
+      toast.error("Failed to connect to server.");
+    }
   };
 
   const resetGame = () => {
